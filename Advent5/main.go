@@ -1,8 +1,7 @@
-package ma
+package main
 
 import (
 	"bufio"
-	"go/format"
 	"os"
 	"strings"
 )
