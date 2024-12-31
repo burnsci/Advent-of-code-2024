@@ -1,15 +1,38 @@
-package ma
+package main
 
 import (
 	"bufio"
-	"go/format"
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
+
 func check(e error){
 	if e != nil{
 		panic(e)
 	}
+}
+
+func applyRule(rule string, order string) bool{
+	numbers := strings.Split(order, ",")
+
+	ruleComponents := strings.Split(rule, "|")
+	if !strings.Contains(order, ruleComponents[0]) || !strings.Contains(order, ruleComponents[1]){
+		return true //if it does not contain one part of the rule then it is a valid rule
+	}
+	posA, posB := 0,0
+	for index, value := range numbers{
+		if value == ruleComponents[0]{
+			posA = index
+		}
+		if value == ruleComponents[1]{
+			posB = index
+		}
+	}
+
+
+	return posA<=posB
 }
 
 func main(){
@@ -23,6 +46,8 @@ func main(){
 	rules := []string{}
 	orders := []string{}
 
+	total := 0
+
 	for scanner.Scan(){
 		row := scanner.Text()
 		if strings.Contains(row, "|"){
@@ -32,23 +57,38 @@ func main(){
 		}
 	}
 
+	
 	for _, order := range orders{
 		numbers := strings.Split(order, ",")
 		applicableRules := []string{}
-		
+
+		valid := true
+
+		nextOrderMarker:
 		for _, number := range numbers{
 			for _, rule := range rules{
 				if strings.Contains(rule, number){
 					applicableRules = append(applicableRules, rule)
 				}
 			}
+			for _, applicableRule := range applicableRules{
+				if !applyRule(applicableRule, order) {
+					valid = false
+					break nextOrderMarker
+				}
+			}	
 		}
 
-		//for each applicable rule
-		//split on |
-		//find index of each number in the order
-		//if index1>index2 invalid order
-		//if all rules valid add middle number to total
+		if valid{
+			middleIndex := int((float64(len(numbers))/2)-0.5)
+			middleNumberStr := numbers[middleIndex]
+			middleNumberInt, _ := strconv.Atoi(middleNumberStr) 
+			total=total + middleNumberInt
+		}
+		valid = true
+
 	}
+
+	fmt.Println(total)
 	
 }
