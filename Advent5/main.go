@@ -14,10 +14,64 @@ func check(e error){
 	}
 }
 
+func getMiddleNumber(numbers []string) int{
+	middleIndex := int((float64(len(numbers))/2)-0.5)
+	middleNumberStr := numbers[middleIndex]
+	middleNumberInt, _ := strconv.Atoi(middleNumberStr)
+	return middleNumberInt
+}
+
+func splitRule(rule string) []string{
+	return strings.Split(rule, "|")
+}
+
+func getIndex(numbers []string, value string) int{
+	for index, current := range numbers{
+		if current == value{
+			return index
+		}
+	}
+	return -1
+}
+
+func revertToOrder(numbers []string)string{
+	order := ""
+	for _, value := range numbers{
+		if order == ""{
+			order = value
+		}else{
+			order = order + "," + value
+		}
+	}
+	return order
+}
+
+func fixNumbers(order string, rules []string) []string{
+	modified := false
+	fixedNumbers := strings.Split(order, ",")
+	//fixNumberMarker:
+	for _, rule := range rules{
+		if !applyRule(rule, revertToOrder(fixedNumbers)){
+			ruleComponents := splitRule(rule)
+			posA := getIndex(fixedNumbers, ruleComponents[0])
+			posB := getIndex(fixedNumbers, ruleComponents[1])
+			temp := fixedNumbers[posA]
+			fixedNumbers[posA] = fixedNumbers[posB]
+			fixedNumbers[posB] = temp
+			modified = true
+			//break fixNumberMarker
+		}
+	}
+	if modified{
+		fixedNumbers = fixNumbers(revertToOrder(fixedNumbers), rules)
+	}
+	return fixedNumbers
+}
+
 func applyRule(rule string, order string) bool{
 	numbers := strings.Split(order, ",")
 
-	ruleComponents := strings.Split(rule, "|")
+	ruleComponents := splitRule(rule)
 	if !strings.Contains(order, ruleComponents[0]) || !strings.Contains(order, ruleComponents[1]){
 		return true //if it does not contain one part of the rule then it is a valid rule
 	}
@@ -30,8 +84,6 @@ func applyRule(rule string, order string) bool{
 			posB = index
 		}
 	}
-
-
 	return posA<=posB
 }
 
@@ -47,6 +99,7 @@ func main(){
 	orders := []string{}
 
 	total := 0
+	wrongTotals := 0
 
 	for scanner.Scan(){
 		row := scanner.Text()
@@ -56,15 +109,12 @@ func main(){
 			orders = append(orders, row)
 		}
 	}
-
 	
 	for _, order := range orders{
 		numbers := strings.Split(order, ",")
 		applicableRules := []string{}
-
 		valid := true
-
-		nextOrderMarker:
+		//nextOrderMarker:
 		for _, number := range numbers{
 			for _, rule := range rules{
 				if strings.Contains(rule, number){
@@ -74,21 +124,19 @@ func main(){
 			for _, applicableRule := range applicableRules{
 				if !applyRule(applicableRule, order) {
 					valid = false
-					break nextOrderMarker
+					//break nextOrderMarker
 				}
 			}	
 		}
 
 		if valid{
-			middleIndex := int((float64(len(numbers))/2)-0.5)
-			middleNumberStr := numbers[middleIndex]
-			middleNumberInt, _ := strconv.Atoi(middleNumberStr) 
-			total=total + middleNumberInt
+			total=total + getMiddleNumber(numbers)
+		}else if !valid{
+			wrongTotals = wrongTotals + getMiddleNumber(fixNumbers(order, applicableRules))
 		}
 		valid = true
-
 	}
 
-	fmt.Println(total)
-	
+	fmt.Println("regular total", total)
+	fmt.Println("corrected middle total: ", wrongTotals)
 }
