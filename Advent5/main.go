@@ -49,7 +49,6 @@ func revertToOrder(numbers []string)string{
 func fixNumbers(order string, rules []string) []string{
 	modified := false
 	fixedNumbers := strings.Split(order, ",")
-	//fixNumberMarker:
 	for _, rule := range rules{
 		if !applyRule(rule, revertToOrder(fixedNumbers)){
 			ruleComponents := splitRule(rule)
@@ -59,7 +58,6 @@ func fixNumbers(order string, rules []string) []string{
 			fixedNumbers[posA] = fixedNumbers[posB]
 			fixedNumbers[posB] = temp
 			modified = true
-			//break fixNumberMarker
 		}
 	}
 	if modified{
